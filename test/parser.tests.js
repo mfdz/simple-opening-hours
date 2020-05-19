@@ -115,3 +115,32 @@ t.test("Partially closed", t => {
     t.end()
 });
 
+t.test("Partially closed - other times open", t => {
+    const table = (new oh("00:00-24:00; Tu,Sa 02:00-14:30 off;PH 00:00-24:00")).getTable();
+    t.same(table, {
+        mo: ["00:00-24:00"],
+        tu: ["00:00-02:00", "14:30-24:00"],
+        we: ["00:00-24:00"],
+        th: ["00:00-24:00"],
+        fr: ["00:00-24:00"],
+        sa: ["00:00-02:00", "14:30-24:00"],
+        su: ["00:00-24:00"],
+        ph: ["00:00-24:00"]
+    });
+    t.end();
+});
+
+t.test("Partially closed differently - other times open", t => {
+    const table = (new oh("01:00-23:30; we,Su 02:30-14:30 off; mo 20:00-22:00 off")).getTable();
+    t.same(table, {
+        mo: ["01:00-20:00", "22:00-23:30"],
+        tu: ["01:00-23:30"],
+        we: ["01:00-02:30", "14:30-23:30"],
+        th: ["01:00-23:30"],
+        fr: ["01:00-23:30"],
+        sa: ["01:00-23:30"],
+        su: ["01:00-02:30", "14:30-23:30"],
+        ph: ["01:00-23:30"]
+    });
+    t.end();
+});
