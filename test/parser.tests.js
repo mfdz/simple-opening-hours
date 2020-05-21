@@ -159,3 +159,18 @@ t.test("Partially closed - more off times a day", t => {
   });
   t.end();
 });
+
+t.test("Partially closed - universal opening hours given at the end", t => {
+  const table = (new oh("we,Su 02:30-06:30 off; 01:00-23:30")).getTable();
+  t.same(table, {
+    mo: ["01:00-23:30"],
+    tu: ["01:00-23:30"],
+    we: ["01:00-02:30", "06:30-23:30"],
+    th: ["01:00-23:30"],
+    fr: ["01:00-23:30"],
+    sa: ["01:00-23:30"],
+    su: ["01:00-02:30", "06:30-23:30"],
+    ph: ["01:00-23:30"]
+  });
+  t.end();
+});

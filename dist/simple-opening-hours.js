@@ -76,7 +76,6 @@ var SimpleOpeningHours = /** @class */ (function () {
         });
     };
     SimpleOpeningHours.prototype.parseClosingHours = function (input) {
-        var _this = this;
         var tempData = {
             su: [],
             mo: [],
@@ -90,56 +89,67 @@ var SimpleOpeningHours = /** @class */ (function () {
         var univStart;
         var univEnd;
         var parts = input.toLowerCase().split(";");
-        parts.forEach(function (part) {
-            var parts = part.trim().split(' ');
-            var days;
+        var _loop_1 = function (p) {
+            parts[p] = parts[p].trim();
+            var segments = parts[p].split(' ');
+            var days = void 0;
             var openTimes = [];
             // If part has the closing hours.
-            if (part.indexOf('off') !== -1) {
-                days = _this.parseDays(parts[0]);
-                var closeTimes = [];
-                // Split closing times into array of times.
-                // parts[0]: days, parts[last]: 'off'
-                for (var i = 1; i < parts.length - 1; i++) {
-                    parts[i] = parts[i].replace(',', '');
-                    var tmp = parts[i].split('-');
-                    closeTimes.push(tmp[0]);
-                    closeTimes.push(tmp[1]);
+            if (parts[p].indexOf('off') !== -1) {
+                // Handle if no start or end time is found yet.
+                if (univStart == undefined || univEnd == undefined) {
+                    parts.push(parts[p]);
                 }
-                // Switch closing hours to opening hours.
-                for (var i = 0; i < closeTimes.length; i++) {
-                    if (i == 0) {
-                        openTimes.push(univStart + "-" + closeTimes[i]);
+                else {
+                    days = this_1.parseDays(segments[0]);
+                    var closeTimes = [];
+                    // Split closing times into array of times.
+                    // parts[0]: days, parts[last]: 'off'
+                    for (var i = 1; i < segments.length - 1; i++) {
+                        segments[i] = segments[i].replace(',', '');
+                        var tmp = segments[i].split('-');
+                        closeTimes.push(tmp[0]);
+                        closeTimes.push(tmp[1]);
                     }
-                    else if (i == closeTimes.length - 1) {
-                        openTimes.push(closeTimes[i] + "-" + univEnd);
+                    // Switch closing hours to opening hours.
+                    for (var i = 0; i < closeTimes.length; i++) {
+                        if (i == 0) {
+                            openTimes.push(univStart + "-" + closeTimes[i]);
+                        }
+                        else if (i == closeTimes.length - 1) {
+                            openTimes.push(closeTimes[i] + "-" + univEnd);
+                        }
+                        else {
+                            openTimes.push(closeTimes[i] + "-" + closeTimes[++i]);
+                        }
                     }
-                    else {
-                        openTimes.push(closeTimes[i] + "-" + closeTimes[++i]);
-                    }
+                    days.forEach(function (day) {
+                        tempData[day] = openTimes;
+                    });
                 }
-                days.forEach(function (day) {
-                    tempData[day] = openTimes;
-                });
                 // If part has the universal opening hours.
             }
-            else if (parts.length == 1) {
-                var tmp = part.split('-');
+            else if (segments.length == 1) {
+                var tmp = parts[p].split('-');
                 univStart = tmp[0];
                 univEnd = tmp[1];
                 for (var key in tempData) {
-                    tempData[key].push(part);
+                    tempData[key].push(parts[p]);
                 }
                 // If part has basic opening hours.
             }
             else {
-                var days_1 = _this.parseDays(parts[0]);
-                openTimes.push(parts[1]);
+                var days_1 = this_1.parseDays(segments[0]);
+                openTimes.push(segments[1]);
                 days_1.forEach(function (day) {
                     tempData[day] = openTimes;
                 });
             }
-        });
+        };
+        var this_1 = this;
+        for (var p = 0; p < parts.length; p++) {
+            _loop_1(p);
+        }
         for (var key in tempData) {
             this.openingHours[key] = tempData[key];
         }
