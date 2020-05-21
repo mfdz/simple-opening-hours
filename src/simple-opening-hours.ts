@@ -87,37 +87,50 @@ export default class SimpleOpeningHours {
 		let univEnd;
 		const parts = input.toLowerCase().split(";");
 		parts.forEach(part => {
-			// If part has the closing hours.
 			let parts = part.trim().split(' ');
-			let days;
-			let openTimes = [];
-			if (part.indexOf('off') !== -1){
-				days = this.parseDays(parts[0]);
-				let closeTimes = parts[1].split('-');
-				openTimes.push(univStart+"-"+closeTimes[0]);
-				openTimes.push(closeTimes[1]+"-"+univEnd);
+            let days;
+            let openTimes = [];
+            // If part has the closing hours.
+            if (part.indexOf('off') !== -1){
+                days = this.parseDays(parts[0]);
+				let closeTimes = [];
+                // Split closing times into array of times.
+                // parts[0]: days, parts[last]: 'off'
+                for (let i = 1; i < parts.length-1; i++) {
+                    parts[i] = parts[i].replace(',', '');
+                    let tmp = parts[i].split('-');
+                    closeTimes.push(tmp[0]);
+                    closeTimes.push(tmp[1]);
+                }
+                // Switch closing hours to opening hours.
+                for (let i = 0; i < closeTimes.length; i++){
+                    if (i == 0) {
+                        openTimes.push(univStart + "-" + closeTimes[i]);
+                    } else if (i == closeTimes.length-1) {
+                        openTimes.push(closeTimes[i] + "-" + univEnd);
+                    } else {
+                        openTimes.push(closeTimes[i] + "-" + closeTimes[++i]);
+                    }
+                }
 				days.forEach(day => {
 					tempData[day] = openTimes;
 				});
-
-			} else if (this.isTimeRange(part)) {
-				// If part has the universal opening hours.
-				if (parts.length == 1) {
-					let tmp = part.split('-');
-					univStart = tmp[0];
-					univEnd = tmp[1];
-					for (let key in tempData) {
-						tempData[key].push(part);
-					}
-				// If part has basic opening hours.
-				} else {
-					let days = this.parseDays(parts[0]);
-					openTimes.push(parts[1]);
-					days.forEach(day => {
-						tempData[day] = openTimes;
-					});
-				}
-			}
+            // If part has the universal opening hours.
+            } else if (parts.length == 1) {
+                let tmp = part.split('-');
+                univStart = tmp[0];
+                univEnd = tmp[1];
+                for (let key in tempData) {
+                    tempData[key].push(part);
+                }
+            // If part has basic opening hours.
+            } else {
+                let days = this.parseDays(parts[0]);
+                openTimes.push(parts[1]);
+                days.forEach(day => {
+                    tempData[day] = openTimes;
+                });
+            }
 		});
 		for (let key in tempData) {
 			this.openingHours[key] = tempData[key];

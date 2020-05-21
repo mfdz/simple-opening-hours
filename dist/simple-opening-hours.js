@@ -91,37 +91,53 @@ var SimpleOpeningHours = /** @class */ (function () {
         var univEnd;
         var parts = input.toLowerCase().split(";");
         parts.forEach(function (part) {
-            // If part has the closing hours.
             var parts = part.trim().split(' ');
             var days;
             var openTimes = [];
+            // If part has the closing hours.
             if (part.indexOf('off') !== -1) {
                 days = _this.parseDays(parts[0]);
-                var closeTimes = parts[1].split('-');
-                openTimes.push(univStart + "-" + closeTimes[0]);
-                openTimes.push(closeTimes[1] + "-" + univEnd);
+                var closeTimes = [];
+                // Split closing times into array of times.
+                // parts[0]: days, parts[last]: 'off'
+                for (var i = 1; i < parts.length - 1; i++) {
+                    parts[i] = parts[i].replace(',', '');
+                    var tmp = parts[i].split('-');
+                    closeTimes.push(tmp[0]);
+                    closeTimes.push(tmp[1]);
+                }
+                // Switch closing hours to opening hours.
+                for (var i = 0; i < closeTimes.length; i++) {
+                    if (i == 0) {
+                        openTimes.push(univStart + "-" + closeTimes[i]);
+                    }
+                    else if (i == closeTimes.length - 1) {
+                        openTimes.push(closeTimes[i] + "-" + univEnd);
+                    }
+                    else {
+                        openTimes.push(closeTimes[i] + "-" + closeTimes[++i]);
+                    }
+                }
                 days.forEach(function (day) {
                     tempData[day] = openTimes;
                 });
-            }
-            else if (_this.isTimeRange(part)) {
                 // If part has the universal opening hours.
-                if (parts.length == 1) {
-                    var tmp = part.split('-');
-                    univStart = tmp[0];
-                    univEnd = tmp[1];
-                    for (var key in tempData) {
-                        tempData[key].push(part);
-                    }
-                    // If part has basic opening hours.
+            }
+            else if (parts.length == 1) {
+                var tmp = part.split('-');
+                univStart = tmp[0];
+                univEnd = tmp[1];
+                for (var key in tempData) {
+                    tempData[key].push(part);
                 }
-                else {
-                    var days_1 = _this.parseDays(parts[0]);
-                    openTimes.push(parts[1]);
-                    days_1.forEach(function (day) {
-                        tempData[day] = openTimes;
-                    });
-                }
+                // If part has basic opening hours.
+            }
+            else {
+                var days_1 = _this.parseDays(parts[0]);
+                openTimes.push(parts[1]);
+                days_1.forEach(function (day) {
+                    tempData[day] = openTimes;
+                });
             }
         });
         for (var key in tempData) {
