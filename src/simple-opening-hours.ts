@@ -46,17 +46,20 @@ export default class SimpleOpeningHours {
 	private parse(input:string) {
 		if (/^\s*24\s*?\/\s*?7\s*$/.test(input)) {
 			this.openingHours = {
-        mo: ["00:00-24:00"],
-        tu: ["00:00-24:00"],
-        we: ["00:00-24:00"],
-        th: ["00:00-24:00"],
-        fr: ["00:00-24:00"],
-        sa: ["00:00-24:00"],
-        su: ["00:00-24:00"],
-        ph: ["00:00-24:00"]
-      };
-      this.alwaysOpen = true;
+				mo: ["00:00-24:00"],
+				tu: ["00:00-24:00"],
+				we: ["00:00-24:00"],
+				th: ["00:00-24:00"],
+				fr: ["00:00-24:00"],
+				sa: ["00:00-24:00"],
+				su: ["00:00-24:00"],
+				ph: ["00:00-24:00"]
+			};
+			this.alwaysOpen = true;
 			return
+		} else if (/^.*[0-9]{2}:[0-9]{2}\s*off.*$/.test(input)) {
+			this.init();
+			return this.parseClosingHours(input);
 		} else if (/^\s*off\s*$/.test(input)) {
 			this.openingHours = false
 			this.alwaysClosed = true
@@ -67,6 +70,58 @@ export default class SimpleOpeningHours {
 		parts.forEach(part => {
 			this.parseHardPart(part)
 		});
+	}
+
+	private parseClosingHours(input: string){
+		let tempData = {
+			su: [],
+			mo: [],
+			tu: [],
+			we: [],
+			th: [],
+			fr: [],
+			sa: [],
+			ph: []
+		};
+		let univStart;
+		let univEnd;
+		const parts = input.toLowerCase().split(";");
+		parts.forEach(part => {
+			// If part has the closing hours.
+			let parts = part.trim().split(' ');
+			let days;
+			let openTimes = [];
+			if (part.indexOf('off') !== -1){
+				days = this.parseDays(parts[0]);
+				let closeTimes = parts[1].split('-');
+				openTimes.push(univStart+"-"+closeTimes[0]);
+				openTimes.push(closeTimes[1]+"-"+univEnd);
+				days.forEach(day => {
+					tempData[day] = openTimes;
+				});
+
+			} else if (this.isTimeRange(part)) {
+				// If part has the universal opening hours.
+				if (parts.length == 1) {
+					let tmp = part.split('-');
+					univStart = tmp[0];
+					univEnd = tmp[1];
+					for (let key in tempData) {
+						tempData[key].push(part);
+					}
+				// If part has basic opening hours.
+				} else {
+					let days = this.parseDays(parts[0]);
+					openTimes.push(parts[1]);
+					days.forEach(day => {
+						tempData[day] = openTimes;
+					});
+				}
+			}
+		});
+		for (let key in tempData) {
+			this.openingHours[key] = tempData[key];
+		}
 	}
 
 	private parseHardPart(part: string) {
