@@ -89,11 +89,11 @@ export default class SimpleOpeningHours {
 		for (let p = 0; p < parts.length; p++){
 			parts[p] = parts[p].trim();
 			let segments = parts[p].split(' ');
-            let days;
-            let openTimes = [];
-            // If part has the closing hours.
-            if (parts[p].indexOf('off') !== -1){
-            	// If no start or end time is found yet, add part to the end of the list.
+			let days;
+			let openTimes = [];
+			// If part has the closing hours.
+			if (parts[p].indexOf('off') !== -1){
+				// If no start or end time is found yet, add part to the end of the list.
 				if (univStart == undefined || univEnd == undefined) {
 					parts.push(parts[p]);
 				} else {
@@ -121,22 +121,22 @@ export default class SimpleOpeningHours {
 						tempData[day] = openTimes;
 					});
 				}
-            // If part has the universal opening hours.
-            } else if (segments.length == 1) {
-                let tmp = parts[p].split('-');
-                univStart = tmp[0];
-                univEnd = tmp[1];
-                for (let key in tempData) {
-                    tempData[key].push(parts[p]);
-                }
-            // If part has basic opening hours.
-            } else {
-                let days = this.parseDays(segments[0]);
-                openTimes.push(segments[1]);
-                days.forEach(day => {
-                    tempData[day] = openTimes;
-                });
-            }
+			// If part has the universal opening hours.
+			} else if (segments.length == 1) {
+				let tmp = parts[p].split('-');
+				univStart = tmp[0];
+				univEnd = tmp[1];
+				for (let key in tempData) {
+					tempData[key].push(parts[p]);
+				}
+			// If part has basic opening hours.
+			} else {
+				let days = this.parseDays(segments[0]);
+				openTimes.push(segments[1]);
+				days.forEach(day => {
+					tempData[day] = openTimes;
+				});
+			}
 		}
 		for (let key in tempData) {
 			this.openingHours[key] = tempData[key];
